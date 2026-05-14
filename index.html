@@ -48,6 +48,71 @@
 </head>
 <body class="min-h-screen bg-white text-slate-900 font-sans antialiased dark:bg-slate-950 dark:text-slate-100">
 
+<div id="tjt-gate" style="position:fixed;inset:0;background:#fff;z-index:99999;
+     display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;">
+  <div style="text-align:center;max-width:380px;padding:24px;">
+    <p style="margin:0 0 16px 0;color:#475569;font-size:15px;">
+      Please enter the password to continue.
+    </p>
+    <input id="tjt-gate-input" type="password" autofocus
+           style="width:100%;padding:12px 14px;border:1px solid #cbd5e1;border-radius:8px;
+                  font-size:16px;margin-bottom:12px;box-sizing:border-box;"/>
+    <button id="tjt-gate-submit"
+            style="width:100%;padding:12px 14px;background:#dc2626;color:white;border:none;
+                   border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">
+      Continue
+    </button>
+    <p id="tjt-gate-error" style="color:#dc2626;font-size:13px;margin-top:10px;height:18px;"></p>
+    <p style="color:#94a3b8;font-size:11px;margin-top:24px;">
+      The Judge Tool — private beta.
+    </p>
+  </div>
+</div>
+
+<script>
+(function() {
+  var PW = "brisket";  // to change: edit this line, commit, push
+  var KEY = "tjt_gate_unlock_expires";
+  var DAYS_30 = 30 * 24 * 60 * 60 * 1000;
+
+  var overlay = document.getElementById("tjt-gate");
+  var input = document.getElementById("tjt-gate-input");
+  var submit = document.getElementById("tjt-gate-submit");
+  var error = document.getElementById("tjt-gate-error");
+
+  // Already unlocked?
+  var expires = parseInt(localStorage.getItem(KEY) || "0", 10);
+  if (expires > Date.now()) {
+    overlay.style.display = "none";
+    return;
+  }
+
+  function tryUnlock() {
+    if (input.value === PW) {
+      localStorage.setItem(KEY, String(Date.now() + DAYS_30));
+      overlay.style.display = "none";
+      // Fire GA4 custom event — viewable in GA4 > Reports > Engagement > Events
+      if (typeof gtag === "function") {
+        gtag("event", "gate_entered", {
+          event_category: "private_beta",
+          event_label: "marketing_gate"
+        });
+      }
+    } else {
+      error.textContent = "Incorrect password";
+      input.value = "";
+      input.focus();
+      setTimeout(function() { error.textContent = ""; }, 3000);
+    }
+  }
+
+  submit.addEventListener("click", tryUnlock);
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") tryUnlock();
+  });
+})();
+</script>
+
   <!-- Nav -->
   <nav class="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
